@@ -81,9 +81,6 @@ export class Process extends EventEmitter {
     const configPath = await createAnonConfigFile(this.options);
     const binaryPath = this.options.binaryPath ?? getBinaryPath('anon');
     const isRunning = await Process.isAnonProcessRunning();
-    if (isRunning) {
-      throw new AnonRunningError('An Anon process is already running')
-    }
     return this.startWithTimeout(binaryPath, configPath);
   }
   
