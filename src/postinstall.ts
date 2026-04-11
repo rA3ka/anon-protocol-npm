@@ -10,7 +10,7 @@ import { getBinaryDir } from './utils';
 
 const owner = 'anyone-protocol';
 const repo = 'ator-protocol'
-const version = 'v0.4.9.11';
+const version = 'v0.4.9.12';
 const releaseUrl = `https://api.github.com/repos/${owner}/${repo}/releases/tags/${version}`;
 
 interface Asset {
