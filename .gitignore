@@ -9,5 +9,4 @@ bin
 
 .idea
 
-# Claude Code files
-cc/
+*.tgz

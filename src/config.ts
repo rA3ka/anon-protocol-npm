@@ -57,9 +57,9 @@ export async function createAnonConfigFile(options: Config): Promise<string> {
     }
   }
 
-  const configPath = options.configFile ?? path.join(os.tmpdir(), `anonrc-${Date.now()}`);
-  const tempDataDirName = `anon-data-${Date.now()}`;
-  const tempDataDirPath = path.join(os.tmpdir(), tempDataDirName);
+  const configPath = options.configFile ?? path.join(process.cwd(), `anonrc`);
+  const tempDataDirName = `anon-data`;
+  const tempDataDirPath = path.join(process.cwd(), tempDataDirName);
 
   const binaryDir = options.binaryPath
       ? path.dirname(options.binaryPath)
