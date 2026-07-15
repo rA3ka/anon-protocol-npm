@@ -10,7 +10,7 @@ import { getBinaryDir } from './utils';
 
 const owner = 'anyone-protocol';
 const repo = 'ator-protocol'
-const version = 'v0.4.10.2';
+const version = 'v0.4.10.3-beta';
 const releaseUrl = `https://api.github.com/repos/${owner}/${repo}/releases/tags/${version}`;
 
 interface Asset {
@@ -113,8 +113,8 @@ const makeExecutable = (file: string) => {
 
   const arch = archMap[osArch];
 
-  const assetName = `anon-live-${platform}-${arch}.zip`;
-  const assetDir = `anon-live-${platform}-${arch}`;
+  const assetName = `anon-beta-${platform}-${arch}.zip`;
+  const assetDir = `anon-beta-${platform}-${arch}`;
   let downloadUrl = '';
   for (const asset of resp.data.assets) {
     if (asset.name === assetName) {

@@ -148,20 +148,20 @@ export class Process extends EventEmitter {
       clearTimeout(timeoutId);
       this.emit('bootstrap-complete', { timestamp: new Date() });
       resolve();
-      this.downloadAnyoneHosts().catch(() => {});
+      // this.downloadAnyoneHosts().catch(() => {});
     }
   }
 
-  private async downloadAnyoneHosts(): Promise<void> {
-    if (!this.dataDir) return;
-    const agent = new SocksProxyAgent(`socks5://127.0.0.1:${this.options.socksPort}`);
-    const response = await axios.get<string>(
-      'http://dns-live-1.anyone.anyone/tld/anyone',
-      { httpAgent: agent, responseType: 'text', timeout: 30000 }
-    );
-    const hostsPath = path.join(this.dataDir, 'anyone_hosts');
-    await fs.writeFile(hostsPath, response.data);
-  }
+  // private async downloadAnyoneHosts(): Promise<void> {
+  //   if (!this.dataDir) return;
+  //   const agent = new SocksProxyAgent(`socks5://127.0.0.1:${this.options.socksPort}`);
+  //   const response = await axios.get<string>(
+  //     'http://dns-live-1.anyone.anyone/tld/anyone',
+  //     { httpAgent: agent, responseType: 'text', timeout: 30000 }
+  //   );
+  //   const hostsPath = path.join(this.dataDir, 'anyone_hosts');
+  //   await fs.writeFile(hostsPath, response.data);
+  // }
 
   private getBootstrapStatus(percentage: number): string {
     if (percentage === 0) return 'Starting bootstrap';
