@@ -205,8 +205,12 @@ export class RelayManager {
 
         const country = this.parseCountryResponse(response);
 
-        this.countryCache!.set(address, country);
-        await this.countryCache!.saveCache();
+        // Only cache real answers; '??' means the geoip db couldn't place the IP,
+        // so don't poison the 30-day cache with it. Persistence is batched by the
+        // caller (populateCountries) rather than written per-IP.
+        if (country && country !== '??') {
+            this.countryCache!.set(address, country);
+        }
 
         return country;
     }
@@ -229,17 +233,43 @@ export class RelayManager {
             }
         }
 
-        // Second pass: queue uncached IPs for background resolution
-        const uncachedIps = relays
-            .filter(relay => !relay.country)
-            .map(relay => relay.ip);
+        // Second pass: resolve uncached relays now, over the ControlPort.
+        // ip-to-country is a local geoip lookup in the daemon (no network
+        // round-trip), and msgLoop correlates responses by IP, so we can run
+        // many lookups concurrently instead of a 1-per-5s background trickle.
+        const uncached = relays.filter(relay => !relay.country);
+        if (uncached.length === 0) return;
 
-        if (uncachedIps.length > 0) {
-            const resolver = async (ip: string) => {
-                return await this.getCountry(ip);
-            };
+        const CONCURRENCY = 24;
+        let cursor = 0;
+        let dirty = false;
 
-            this.countryCache!.populateInBackground(uncachedIps, resolver);
+        const worker = async () => {
+            while (cursor < uncached.length) {
+                const relay = uncached[cursor++];
+                try {
+                    // Local geoip lookup answers in ms; a long timeout only
+                    // matters when a reply is lost, so keep it short.
+                    const country = await this.getCountry(relay.ip, 3000);
+                    // Skip unknowns so they aren't cached for 30 days and don't
+                    // create a bogus "??" country bucket.
+                    if (country && country !== '??') {
+                        relay.country = country;
+                        dirty = true;
+                    }
+                } catch {
+                    // Best-effort: leave relay.country unset, it'll retry next refresh.
+                }
+            }
+        };
+
+        await Promise.all(
+            Array.from({ length: Math.min(CONCURRENCY, uncached.length) }, worker)
+        );
+
+        // getCountry saves per-IP; flush once more only if anything resolved.
+        if (dirty) {
+            await this.countryCache!.saveCache();
         }
     }
 
